@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG 流程图</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f172a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+  .container {
+    width: 900px;
+    padding: 40px;
+  }
+  h1 {
+    text-align: center;
+    color: #e2e8f0;
+    font-size: 28px;
+    margin-bottom: 40px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  h1 span { color: #38bdf8; }
+
+  .pipeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: nowrap;
+  }
+
+  .step {
+    width: 180px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1.5px solid #334155;
+    border-radius: 16px;
+    padding: 22px 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .step-num {
+    display: inline-block;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 32px;
+    margin-bottom: 10px;
+  }
+  .step-icon { font-size: 28px; margin-bottom: 6px; }
+  .step h3 { color: #f1f5f9; font-size: 14px; margin-bottom: 6px; }
+  .step p { color: #94a3b8; font-size: 11px; line-height: 1.6; }
+  .step code {
+    display: inline-block;
+    background: #334155;
+    color: #38bdf8;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  .arrow {
+    color: #64748b;
+    font-size: 32px;
+    flex-shrink: 0;
+    margin: 0 -4px;
+    z-index: 1;
+  }
+
+  .detail-box {
+    margin-top: 44px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1.5px solid #334155;
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex;
+    gap: 40px;
+  }
+  .detail-left {
+    flex: 1;
+  }
+  .detail-right {
+    flex: 1;
+  }
+  .detail-box h4 {
+    color: #38bdf8;
+    font-size: 13px;
+    margin-bottom: 14px;
+    letter-spacing: 1px;
+  }
+  .detail-box ul {
+    list-style: none;
+    color: #cbd5e1;
+    font-size: 13px;
+    line-height: 2.2;
+  }
+  .detail-box ul li::before {
+    content: "▸ ";
+    color: #818cf8;
+  }
+  .highlight {
+    background: rgba(56, 189, 248, 0.12);
+    border-left: 3px solid #38bdf8;
+    padding: 6px 12px;
+    border-radius: 0 6px 6px 0;
+    margin-top: 10px;
+    color: #e2e8f0;
+    font-size: 12px;
+  }
+  .footer {
+    text-align: center;
+    color: #475569;
+    font-size: 11px;
+    margin-top: 36px;
+  }
+
+  /* ---- 第二张图: overlap 对比 ---- */
+  .overlap-demo {
+    display: flex;
+    gap: 24px;
+    margin-top: 0;
+  }
+  .bad-box, .good-box {
+    flex: 1;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1.5px solid #334155;
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .bad-box h3 { color: #f87171; font-size: 15px; margin-bottom: 14px; text-align: center; }
+  .good-box h3 { color: #4ade80; font-size: 15px; margin-bottom: 14px; text-align: center; }
+  .chunk {
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: #cbd5e1;
+    line-height: 1.7;
+    position: relative;
+    word-break: break-all;
+  }
+  .chunk .label {
+    font-size: 9px;
+    color: #64748b;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .highlight-orange {
+    background: rgba(251, 146, 60, 0.25);
+    padding: 1px 3px;
+    border-radius: 2px;
+    color: #fdba74;
+  }
+  .highlight-blue {
+    background: rgba(56, 189, 248, 0.25);
+    padding: 1px 3px;
+    border-radius: 2px;
+    color: #7dd3fc;
+  }
+  .highlight-green {
+    background: rgba(74, 222, 128, 0.2);
+    padding: 1px 3px;
+    border-radius: 2px;
+    color: #86efac;
+  }
+  .broken-line {
+    border: none;
+    border-top: 1px dashed #f87171;
+    margin: 2px 0 6px;
+  }
+  .arrow-bad {
+    text-align: center;
+    color: #f87171;
+    font-size: 13px;
+    margin: 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- ====== 图1: RAG 流程图 ====== -->
+<div class="container" style="page-break-after: always;">
+  <h1>🔍 <span>RAG</span> 检索增强生成 · 四步流水线</h1>
+
+  <div class="pipeline">
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-num">①</div>
+      <div class="step-icon">📄</div>
+      <h3>文档加载</h3>
+      <p>读入 PDF / TXT<br>LangChain 统一接口</p>
+      <code>PyPDFLoader</code>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-num">②</div>
+      <div class="step-icon">✂️</div>
+      <h3>文本分割</h3>
+      <p>切成长 800 字的小块<br>块间 100 字重叠</p>
+      <code>overlap=100</code>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-num">③</div>
+      <div class="step-icon">🧮</div>
+      <h3>向量化存储</h3>
+      <p>文字→384维向量<br>存入 Chroma 数据库</p>
+      <code>all-MiniLM-L6-v2</code>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-num">④</div>
+      <div class="step-icon">💬</div>
+      <h3>检索 + 生成</h3>
+      <p>搜 Top-4 相关块<br>连问题发给 LLM</p>
+      <code>k=4</code>
+    </div>
+  </div>
+
+  <div class="detail-box">
+    <div class="detail-left">
+      <h4>🛠 实际技术选型</h4>
+      <ul>
+        <li>聊天模型：DeepSeek（deepseek-chat）</li>
+        <li>Embedding：HuggingFace 本地模型（免费）</li>
+        <li>向量数据库：Chroma（轻量本地运行）</li>
+        <li>框架：LangChain（组件拼装）</li>
+      </ul>
+      <div class="highlight">
+        DeepSeek 接口兼容 OpenAI 格式 → <code>ChatOpenAI</code> 改个 <code>base_url</code> 就能"借壳"调用
+      </div>
+    </div>
+    <div class="detail-right">
+      <h4>💡 面试能聊的 5 个点</h4>
+      <ul>
+        <li>四步流水线为什么这样设计</li>
+        <li>chunk_size=800, overlap=100 怎么选的</li>
+        <li>Embedding 用 API vs 本地模型的取舍</li>
+        <li>向量数据库为什么能搜"意思相近"</li>
+        <li>DeepSeek 借壳 OpenAI 接口格式</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">Week 2 · RAG 实战打卡 | GitHub: 2390254083-lang</div>
+</div>
+
+</body>
+</html>
